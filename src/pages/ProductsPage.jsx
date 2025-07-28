@@ -12,7 +12,8 @@ import {
   Save,
   X,
   Upload,
-  AlertCircle
+  AlertCircle,
+  User
 } from 'lucide-react';
 import { formatPrice } from '../utils/formatters';
 
@@ -34,6 +35,15 @@ const initialUnits = [
   { id: 6, name: 'ແຫຼມ' }
 ];
 
+const initialCustomers = [
+  { id: 1, name: 'ລູກຄ້າທົ່ວໄປ' },
+  { id: 2, name: 'ສົມຊາຍ ວົງສະວັນ' },
+  { id: 3, name: 'ນາງສີ ພົມມະວົງ' },
+  { id: 4, name: 'ທ້າວບຸນມີ ສີໄຕ' },
+  { id: 5, name: 'ນາງແສງ ທອງດີ' },
+  { id: 6, name: 'ສົມພອນ ລາວົງ' }
+];
+
 const initialProducts = [
   { id: 1, name: 'ນ້ຳໃຫຍ່', brand_id: 1, unit_id: 1, price: 15000, image: '🥤' },
   { id: 2, name: 'ນ້ຳໃຫຍ່', brand_id: 1, unit_id: 2, price: 180000, image: '📦' },
@@ -47,6 +57,7 @@ const ProductsPage = () => {
   const [products, setProducts] = useState(initialProducts);
   const [brands, setBrands] = useState(initialBrands);
   const [units, setUnits] = useState(initialUnits);
+  const [customers, setCustomers] = useState(initialCustomers);
   
   // States for products
   const [searchText, setSearchText] = useState('');
@@ -64,6 +75,11 @@ const ProductsPage = () => {
   const [showUnitModal, setShowUnitModal] = useState(false);
   const [editingUnit, setEditingUnit] = useState(null);
   const [unitName, setUnitName] = useState('');
+  
+  // States for customers
+  const [showCustomerModal, setShowCustomerModal] = useState(false);
+  const [editingCustomer, setEditingCustomer] = useState(null);
+  const [customerName, setCustomerName] = useState('');
   
   // Product form state
   const [productForm, setProductForm] = useState({
@@ -224,6 +240,48 @@ const ProductsPage = () => {
     }
   };
 
+  // Customer functions
+  const handleAddCustomer = () => {
+    setEditingCustomer(null);
+    setCustomerName('');
+    setShowCustomerModal(true);
+  };
+
+  const handleEditCustomer = (customer) => {
+    setEditingCustomer(customer);
+    setCustomerName(customer.name);
+    setShowCustomerModal(true);
+  };
+
+  const handleSaveCustomer = () => {
+    if (!customerName.trim()) {
+      alert('ກະລຸນາໃສ່ຊື່ລູກຄ້າ');
+      return;
+    }
+
+    if (editingCustomer) {
+      setCustomers(customers.map(c => 
+        c.id === editingCustomer.id ? { ...c, name: customerName } : c
+      ));
+    } else {
+      setCustomers([...customers, { id: Date.now(), name: customerName }]);
+    }
+
+    setShowCustomerModal(false);
+    setCustomerName('');
+  };
+
+  const handleDeleteCustomer = (customerId) => {
+    if (customerId === 1) {
+      alert('ບໍ່ສາມາດລຶບລູກຄ້າທົ່ວໄປໄດ້');
+      return;
+    }
+    
+    if (confirm('ທ່ານແນ່ໃຈບໍ່ວ່າຕ້ອງການລຶບລູກຄ້ານີ້?')) {
+      setCustomers(customers.filter(c => c.id !== customerId));
+    }
+  };
+
   const emojiOptions = ['📦', '🥤', '🍺', '📱', '💻', '🎮', '📺', '🚗', '👕', '🍎', '🥛', '🍞'];
 
   return (
@@ -234,7 +292,7 @@ const ProductsPage = () => {
           <Package size={32} className="text-blue-600" />
           ຈັດການສິນຄ້າ
         </h1>
-        <p className="text-gray-600">ເພີ່ມ ແກ້ໄຂ ແລະ ລຶບສິນຄ້າ ຍີ່ຫໍ້ ແລະ ຫົວໜ່ວຍ</p>
+        <p className="text-gray-600">ເພີ່ມ ແກ້ໄຂ ແລະ ລຶບສິນຄ້າ ຍີ່ຫໍ້ ຫົວໜ່ວຍ ແລະ ລູກຄ້າ</p>
       </div>
 
       {/* Action Buttons */}
@@ -259,6 +317,13 @@ const ProductsPage = () => {
         >
           <Package size={18} />
           ເພີ່ມຫົວໜ່ວຍໃໝ່
+        </button>
+        <button 
+          onClick={handleAddCustomer}
+          className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition-colors flex items-center gap-2"
+        >
+          <User size={18} />
+          ເພີ່ມລູກຄ້າໃໝ່
         </button>
       </div>
 
@@ -394,7 +459,7 @@ const ProductsPage = () => {
       </div>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white p-6 rounded-lg border shadow-sm">
           <div className="flex items-center justify-between">
             <div>
@@ -422,6 +487,16 @@ const ProductsPage = () => {
               <p className="text-2xl font-bold text-purple-600">{units.length}</p>
             </div>
             <Package className="text-purple-500" size={32} />
+          </div>
+        </div>
+        
+        <div className="bg-white p-6 rounded-lg border shadow-sm">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-gray-600">ລູກຄ້າ</p>
+              <p className="text-2xl font-bold text-orange-600">{customers.length}</p>
+            </div>
+            <User className="text-orange-500" size={32} />
           </div>
         </div>
       </div>
@@ -620,6 +695,51 @@ const ProductsPage = () => {
         </div>
       )}
 
+      {/* Customer Modal */}
+      {showCustomerModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-sm w-full">
+            <div className="flex justify-between items-center p-6 border-b">
+              <h2 className="text-xl font-bold text-gray-800">
+                {editingCustomer ? 'ແກ້ໄຂລູກຄ້າ' : 'ເພີ່ມລູກຄ້າໃໝ່'}
+              </h2>
+              <button 
+                onClick={() => setShowCustomerModal(false)}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <X size={24} />
+              </button>
+            </div>
+            
+            <div className="p-6">
+              <label className="block text-sm font-medium text-gray-700 mb-1">ຊື່ລູກຄ້າ</label>
+              <input
+                type="text"
+                value={customerName}
+                onChange={(e) => setCustomerName(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                placeholder="ໃສ່ຊື່ລູກຄ້າ"
+              />
+            </div>
+            
+            <div className="flex gap-3 p-6 border-t">
+              <button 
+                onClick={() => setShowCustomerModal(false)}
+                className="flex-1 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+              >
+                ຍົກເລີກ
+              </button>
+              <button 
+                onClick={handleSaveCustomer}
+                className="flex-1 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600"
+              >
+                ບັນທຶກ
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Brands Management Section */}
       <div className="bg-white rounded-lg border shadow-sm">
         <div className="p-4 border-b bg-gray-50">
@@ -684,6 +804,43 @@ const ProductsPage = () => {
                     <Trash2 size={14} />
                   </button>
                 </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Customers Management Section */}
+      <div className="bg-white rounded-lg border shadow-sm">
+        <div className="p-4 border-b bg-gray-50">
+          <h3 className="font-semibold text-gray-800 flex items-center gap-2">
+            <User size={18} />
+            ຈັດການລູກຄ້າ
+          </h3>
+        </div>
+        <div className="p-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+            {customers.map(customer => (
+              <div key={customer.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
+                <span className="font-medium text-gray-800">{customer.name}</span>
+                {customer.id !== 1 && (
+                  <div className="flex gap-1">
+                    <button
+                      onClick={() => handleEditCustomer(customer)}
+                      className="text-blue-500 hover:text-blue-700 p-1 rounded"
+                      title="ແກ້ໄຂ"
+                    >
+                      <Edit size={14} />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteCustomer(customer.id)}
+                      className="text-red-500 hover:text-red-700 p-1 rounded"
+                      title="ລຶບ"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                )}
               </div>
             ))}
           </div>
