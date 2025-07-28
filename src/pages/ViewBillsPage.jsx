@@ -1,54 +1,106 @@
-// src/pages/ViewBillsPage.jsx
-
 import React, { useState } from 'react';
-import { 
-  FileText, 
-  Search, 
-  Calendar, 
-  DollarSign, 
-  Eye,
-  Download,
-  Filter,
-  Users,
-  TrendingUp,
-  Clock,
-  CheckCircle,
-  AlertCircle,
-  Printer,
-  RefreshCw,
-  X
-} from 'lucide-react';
-import { formatPrice, formatDateTime, formatDate } from '../utils/formatters';
-import { mockBills, mockSalesStats } from '../data/mockData';
+import { FileText, TrendingUp } from 'lucide-react';
+
+// Import components
+import BillOverview from './BillOverview';
+import BillList from './BillList';
+import BillDetailModal from './BillDetailModal';
+import PaymentModal from './PaymentModal';
+import ViewBillsPage from '../components/Bill/ViewBillsPage';
+
+// Mock data
+const mockBills = [
+  {
+    id: 'B250101001',
+    customer_id: 2,
+    customer_name: 'ສົມຊາຍ ວົງສະວັນ',
+    customer_phone: '020-1234567',
+    items: [
+      { id: 1, name: 'ນ້ຳໃຫຍ່', brand: 'ຫົວເສືອ', unit: 'ແກັດ', quantity: 2, price: 15000, totalPrice: 30000, image: '🥤' },
+      { id: 5, name: 'Beer Lao ແດງ', brand: 'Beer Lao', unit: 'ບອດ', quantity: 6, price: 25000, totalPrice: 150000, image: '🍺' }
+    ],
+    total: 180000,
+    created_at: new Date('2025-01-01T10:30:00'),
+    status: 'ຊຳລະແລ້ວ',
+    payments: [
+      { method: 'ເງິນສົດ', amount: 180000, date: new Date('2025-01-01T10:30:00') }
+    ]
+  },
+  {
+    id: 'B250101002',
+    customer_id: 3,
+    customer_name: 'ນາງສີ ພົມມະວົງ',
+    customer_phone: '020-7654321',
+    items: [
+      { id: 8, name: 'iPhone 15', brand: 'Apple', unit: 'ລູກ', quantity: 1, price: 50000000, totalPrice: 50000000, image: '📱' }
+    ],
+    total: 50000000,
+    created_at: new Date('2025-01-01T14:15:00'),
+    status: 'ລໍຖ້າຊຳລະ',
+    payments: []
+  },
+  {
+    id: 'B250102003',
+    customer_id: 4,
+    customer_name: 'ທ້າວບຸນມີ ສີໄຕ',
+    customer_phone: '020-9876543',
+    items: [
+      { id: 14, name: 'Pepsi', brand: 'Pepsi', unit: 'ບອດ', quantity: 12, price: 12000, totalPrice: 144000, image: '🥤' },
+      { id: 17, name: 'ເສື້ອ Nike Air', brand: 'Nike', unit: 'ລູກ', quantity: 2, price: 850000, totalPrice: 1700000, image: '👕' }
+    ],
+    total: 1844000,
+    created_at: new Date('2025-01-02T09:45:00'),
+    status: 'ຊຳລະແລ້ວ',
+    payments: [
+      { method: 'ເງິນສົດ', amount: 1844000, date: new Date('2025-01-02T09:45:00') }
+    ]
+  },
+  {
+    id: 'B250102004',
+    customer_id: 1,
+    customer_name: 'ລູກຄ້າທົ່ວໄປ',
+    customer_phone: '',
+    items: [
+      { id: 21, name: 'Coca-Cola', brand: 'Coca-Cola', unit: 'ບອດ', quantity: 24, price: 13000, totalPrice: 312000, image: '🥤' }
+    ],
+    total: 312000,
+    created_at: new Date('2025-01-02T16:20:00'),
+    status: 'ຊຳລະແລ້ວ',
+    payments: [
+      { method: 'ບັດເຄຣດິດ', amount: 312000, date: new Date('2025-01-02T16:20:00') }
+    ]
+  },
+  {
+    id: 'B250103005',
+    customer_id: 5,
+    customer_name: 'ນາງແສງ ທອງດີ',
+    customer_phone: '020-5555666',
+    items: [
+      { id: 11, name: 'Galaxy S24', brand: 'Samsung', unit: 'ລູກ', quantity: 1, price: 45000000, totalPrice: 45000000, image: '📱' },
+      { id: 18, name: 'ເກີບ Nike Air Max', brand: 'Nike', unit: 'ໜ່ວຍ', quantity: 1, price: 1200000, totalPrice: 1200000, image: '👟' }
+    ],
+    total: 46200000,
+    created_at: new Date('2025-01-03T11:10:00'),
+    status: 'ຊຳລະບາງສ່ວນ',
+    payments: [
+      { method: 'ເງິນສົດ', amount: 20000000, date: new Date('2025-01-03T11:15:00') },
+      { method: 'ບັດເຄຣດິດ', amount: 10000000, date: new Date('2025-01-03T11:20:00') }
+    ]
+  }
+];
+
+const formatPrice = (price) => {
+  return new Intl.NumberFormat('lo-LA').format(price);
+};
 
 const ViewBillsPage = () => {
   const [bills, setBills] = useState(mockBills);
-  const [searchText, setSearchText] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [dateFilter, setDateFilter] = useState('');
+  const [activeTab, setActiveTab] = useState('overview'); // overview, bills
   const [selectedBill, setSelectedBill] = useState(null);
   const [showBillDetail, setShowBillDetail] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
-  // Filter bills
-  const filteredBills = bills.filter(bill => {
-    const matchSearch = 
-      bill.id.toLowerCase().includes(searchText.toLowerCase()) ||
-      bill.customer_name.toLowerCase().includes(searchText.toLowerCase()) ||
-      bill.customer_phone.includes(searchText);
-    
-    const matchStatus = !statusFilter || bill.status === statusFilter;
-    
-    const matchDate = !dateFilter || formatDate(bill.created_at) === formatDate(new Date(dateFilter));
-    
-    return matchSearch && matchStatus && matchDate;
-  });
-
-  // Calculate stats
-  const totalRevenue = bills.reduce((sum, bill) => sum + bill.total, 0);
-  const paidBills = bills.filter(bill => bill.status === 'ຊຳລະແລ້ວ');
-  const pendingBills = bills.filter(bill => bill.status === 'ລໍຖ້າຊຳລະ');
-
-  // Handle bill detail view
+  // Handlers
   const handleViewBill = (bill) => {
     setSelectedBill(bill);
     setShowBillDetail(true);
@@ -59,419 +111,135 @@ const ViewBillsPage = () => {
     setSelectedBill(null);
   };
 
+  const handleOpenPayment = (bill) => {
+    setSelectedBill(bill);
+    setShowPaymentModal(true);
+  };
+
+  const handleClosePayment = () => {
+    setShowPaymentModal(false);
+    setSelectedBill(null);
+  };
+
+  const handleProcessPayment = (paymentData) => {
+    const newPayment = {
+      ...paymentData,
+      date: new Date()
+    };
+
+    const updatedBill = {
+      ...selectedBill,
+      payments: [...(selectedBill.payments || []), newPayment]
+    };
+
+    // Calculate new status
+    const totalPaid = updatedBill.payments.reduce((sum, payment) => sum + payment.amount, 0);
+    const remaining = updatedBill.total - totalPaid;
+    updatedBill.status = remaining <= 0 ? 'ຊຳລະແລ້ວ' : 'ຊຳລະບາງສ່ວນ';
+
+    setBills(bills.map(bill => 
+      bill.id === selectedBill.id ? updatedBill : bill
+    ));
+
+    alert(`ບັນທຶກການຊຳລະສຳເລັດ!\nຈຳນວນ: ${formatPrice(paymentData.amount)} ກີບ\nວິທີຊຳລະ: ${paymentData.method}`);
+    handleClosePayment();
+  };
+
   const handlePrintBill = (bill) => {
-    // Simulate printing
     alert(`ກຳລັງພີມບິນເລກທີ: ${bill.id}`);
   };
 
-  const handleUpdateStatus = (billId, newStatus) => {
-    setBills(bills.map(bill => 
-      bill.id === billId ? { ...bill, status: newStatus } : bill
-    ));
+  const handleExportReport = () => {
+    alert('ກຳລັງນຳອອກລາຍງານ...');
   };
 
-  const getStatusColor = (status) => {
-    return status === 'ຊຳລະແລ້ວ' ? 'text-green-600 bg-green-100' : 'text-orange-600 bg-orange-100';
-  };
-
-  const getStatusIcon = (status) => {
-    return status === 'ຊຳລະແລ້ວ' ? <CheckCircle size={16} /> : <Clock size={16} />;
+  const handleNavigateToBills = () => {
+    setActiveTab('bills');
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto space-y-6">
+    <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-4 sm:space-y-6">
       {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-800 mb-2 flex items-center gap-3">
-          <FileText size={32} className="text-blue-600" />
-          ເບິ່ງບິນ
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2 flex items-center gap-2 sm:gap-3">
+          <FileText size={28} className="text-blue-600 sm:w-8 sm:h-8" />
+          ເບິ່ງບິນ ແລະ ຈັດການການຊຳລະ
         </h1>
-        <p className="text-gray-600">ກວດສອບ ແລະ ຈັດການບິນທີ່ບັນທຶກແລ້ວ</p>
+        <p className="text-gray-600 text-sm sm:text-base">ກວດສອບ ຈັດການບິນ ແລະ ຕິດຕາມການຊຳລະ</p>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
-        <div className="bg-white p-6 rounded-lg border shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">ບິນທັງໝົດ</p>
-              <p className="text-2xl font-bold text-blue-600">{bills.length}</p>
-            </div>
-            <FileText className="text-blue-500" size={32} />
-          </div>
-        </div>
-        
-        <div className="bg-white p-6 rounded-lg border shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">ຊຳລະແລ້ວ</p>
-              <p className="text-2xl font-bold text-green-600">{paidBills.length}</p>
-            </div>
-            <CheckCircle className="text-green-500" size={32} />
-          </div>
-        </div>
-        
-        <div className="bg-white p-6 rounded-lg border shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">ລໍຖ້າຊຳລະ</p>
-              <p className="text-2xl font-bold text-orange-600">{pendingBills.length}</p>
-            </div>
-            <Clock className="text-orange-500" size={32} />
-          </div>
-        </div>
-        
-        <div className="bg-white p-6 rounded-lg border shadow-sm">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-gray-600">ລາຍຮັບລວມ</p>
-              <p className="text-lg font-bold text-purple-600">{formatPrice(totalRevenue)}</p>
-            </div>
-            <TrendingUp className="text-purple-500" size={32} />
-          </div>
-        </div>
-      </div>
-
-      {/* Search and Filter */}
-      <div className="bg-white p-4 rounded-lg border shadow-sm space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="font-medium text-gray-800 flex items-center gap-2">
-            <Filter size={18} />
-            ຄົ້ນຫາ & ກອງບິນ
-          </h3>
-          <span className="text-sm text-gray-500">
-            ພົບ {filteredBills.length} ບິນ
-          </span>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Search */}
-          <div className="relative">
-            <Search size={20} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              placeholder="ຄົ້ນຫາເລກບິນ, ຊື່ລູກຄ້າ, ຫຼືເບີໂທ..."
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          {/* Status Filter */}
-          <select 
-            value={statusFilter} 
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+      {/* Tab Navigation - Mobile Optimized */}
+      <div className="bg-white rounded-lg border shadow-sm">
+        <div className="flex border-b">
+          <button
+            onClick={() => setActiveTab('overview')}
+            className={`flex-1 px-4 sm:px-6 py-3 font-medium transition-colors text-sm sm:text-base ${
+              activeTab === 'overview' 
+                ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50' 
+                : 'text-gray-600 hover:text-gray-800'
+            }`}
           >
-            <option value="">ທຸກສະຖານະ</option>
-            <option value="ຊຳລະແລ້ວ">ຊຳລະແລ້ວ</option>
-            <option value="ລໍຖ້າຊຳລະ">ລໍຖ້າຊຳລະ</option>
-          </select>
-
-          {/* Date Filter */}
-          <input
-            type="date"
-            value={dateFilter}
-            onChange={(e) => setDateFilter(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-          />
+            <div className="flex items-center justify-center gap-2">
+              <TrendingUp size={16} className="sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline">ສະຫຼຸບ</span>
+              <span className="sm:hidden">ໜ້າຫຼັກ</span>
+            </div>
+          </button>
+          <button
+            onClick={() => setActiveTab('bills')}
+            className={`flex-1 px-4 sm:px-6 py-3 font-medium transition-colors text-sm sm:text-base ${
+              activeTab === 'bills' 
+                ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50' 
+                : 'text-gray-600 hover:text-gray-800'
+            }`}
+          >
+            <div className="flex items-center justify-center gap-2">
+              <FileText size={16} className="sm:w-5 sm:h-5" />
+              <span className="hidden sm:inline">ລາຍການບິນ</span>
+              <span className="sm:hidden">ບິນ</span>
+            </div>
+          </button>
         </div>
-      </div>
 
-      {/* Bills Table */}
-      <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
-        <div className="p-4 border-b bg-gray-50">
-          <h3 className="font-semibold text-gray-800">ລາຍການບິນ</h3>
+        {/* Tab Content */}
+        <div className="p-4 sm:p-6">
+          {/* Overview Tab */}
+          {activeTab === 'overview' && (
+            <BillOverview
+              bills={bills}
+              onNavigateToBills={handleNavigateToBills}
+              onExportReport={handleExportReport}
+            />
+          )}
+
+          {/* Bills Tab */}
+          {activeTab === 'bills' && (
+            <BillList
+              bills={bills}
+              onViewBill={handleViewBill}
+              onPrintBill={handlePrintBill}
+              onOpenPayment={handleOpenPayment}
+            />
+          )}
         </div>
-        
-        {filteredBills.length === 0 ? (
-          <div className="p-12 text-center text-gray-500">
-            <FileText size={48} className="mx-auto mb-4 text-gray-300" />
-            <p>ບໍ່ພົບບິນ</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">ເລກບິນ</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">ລູກຄ້າ</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-600 uppercase">ວັນທີ</th>
-                  <th className="px-4 py-3 text-right text-xs font-medium text-gray-600 uppercase">ຍອດລວມ</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase">ສະຖານະ</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-600 uppercase">ຈັດການ</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {filteredBills.map(bill => (
-                  <tr key={bill.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3">
-                      <span className="font-mono text-sm font-semibold text-blue-600">{bill.id}</span>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div>
-                        <p className="font-medium text-gray-800">{bill.customer_name}</p>
-                        {bill.customer_phone && (
-                          <p className="text-sm text-gray-500">{bill.customer_phone}</p>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div>
-                        <p className="text-sm text-gray-800">{formatDate(bill.created_at)}</p>
-                        <p className="text-xs text-gray-500">{formatDateTime(bill.created_at).split(' ')[1]}</p>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-right font-semibold text-green-600">
-                      {formatPrice(bill.total)} ກີບ
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex justify-center">
-                        <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(bill.status)}`}>
-                          {getStatusIcon(bill.status)}
-                          {bill.status}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <div className="flex justify-center gap-2">
-                        <button
-                          onClick={() => handleViewBill(bill)}
-                          className="text-blue-500 hover:text-blue-700 p-1 rounded"
-                          title="ເບິ່ງລາຍລະອຽດ"
-                        >
-                          <Eye size={16} />
-                        </button>
-                        <button
-                          onClick={() => handlePrintBill(bill)}
-                          className="text-green-500 hover:text-green-700 p-1 rounded"
-                          title="ພີມບິນ"
-                        >
-                          <Printer size={16} />
-                        </button>
-                        {bill.status === 'ລໍຖ້າຊຳລະ' && (
-                          <button
-                            onClick={() => handleUpdateStatus(bill.id, 'ຊຳລະແລ້ວ')}
-                            className="text-orange-500 hover:text-orange-700 p-1 rounded"
-                            title="ອັບເດດເປັນຊຳລະແລ້ວ"
-                          >
-                            <CheckCircle size={16} />
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
       </div>
 
       {/* Bill Detail Modal */}
-      {showBillDetail && selectedBill && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            {/* Modal Header */}
-            <div className="flex justify-between items-center p-6 border-b">
-              <h2 className="text-xl font-bold text-gray-800">ລາຍລະອຽດບິນ</h2>
-              <button 
-                onClick={handleCloseBillDetail}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X size={24} />
-              </button>
-            </div>
-            
-            {/* Bill Info */}
-            <div className="p-6 space-y-6">
-              {/* Header Info */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 bg-gray-50 rounded-lg">
-                <div>
-                  <h3 className="font-semibold text-gray-800 mb-3">ຂໍ້ມູນບິນ</h3>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">ເລກບິນ:</span>
-                      <span className="font-mono font-semibold text-blue-600">{selectedBill.id}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">ວັນທີ:</span>
-                      <span className="font-medium">{formatDateTime(selectedBill.created_at)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">ສະຖານະ:</span>
-                      <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(selectedBill.status)}`}>
-                        {getStatusIcon(selectedBill.status)}
-                        {selectedBill.status}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-                
-                <div>
-                  <h3 className="font-semibold text-gray-800 mb-3">ຂໍ້ມູນລູກຄ້າ</h3>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">ຊື່:</span>
-                      <span className="font-medium">{selectedBill.customer_name}</span>
-                    </div>
-                    {selectedBill.customer_phone && (
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">ເບີໂທ:</span>
-                        <span className="font-medium">{selectedBill.customer_phone}</span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
+      <BillDetailModal
+        bill={selectedBill}
+        isOpen={showBillDetail}
+        onClose={handleCloseBillDetail}
+        onPrintBill={handlePrintBill}
+        onOpenPayment={handleOpenPayment}
+      />
 
-              {/* Items List */}
-              <div>
-                <h3 className="font-semibold text-gray-800 mb-3">ລາຍການສິນຄ້າ</h3>
-                <div className="border border-gray-200 rounded-lg overflow-hidden">
-                  <table className="w-full">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-4 py-2 text-left text-xs font-medium text-gray-600 uppercase">ສິນຄ້າ</th>
-                        <th className="px-4 py-2 text-center text-xs font-medium text-gray-600 uppercase">ຈຳນວນ</th>
-                        <th className="px-4 py-2 text-right text-xs font-medium text-gray-600 uppercase">ລາຄາ</th>
-                        <th className="px-4 py-2 text-right text-xs font-medium text-gray-600 uppercase">ລວມ</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                      {selectedBill.items.map((item, index) => (
-                        <tr key={index}>
-                          <td className="px-4 py-3">
-                            <div className="flex items-center gap-3">
-                              <span className="text-xl">{item.image}</span>
-                              <div>
-                                <p className="font-medium text-gray-800">{item.name}</p>
-                                <p className="text-xs text-gray-500">{item.brand} • {item.unit}</p>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 text-center font-semibold">
-                            {item.quantity}
-                          </td>
-                          <td className="px-4 py-3 text-right text-sm">
-                            {formatPrice(item.price)}
-                          </td>
-                          <td className="px-4 py-3 text-right font-semibold text-green-600">
-                            {formatPrice(item.totalPrice)}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* Total */}
-              <div className="border-t pt-4">
-                <div className="flex justify-between items-center text-lg">
-                  <span className="font-semibold text-gray-800">ລວມທັງໝົດ:</span>
-                  <span className="font-bold text-green-600 text-xl">
-                    {formatPrice(selectedBill.total)} ກີບ
-                  </span>
-                </div>
-              </div>
-            </div>
-            
-            {/* Modal Actions */}
-            <div className="flex gap-3 p-6 border-t bg-gray-50">
-              <button 
-                onClick={handleCloseBillDetail}
-                className="flex-1 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
-              >
-                ປິດ
-              </button>
-              <button 
-                onClick={() => handlePrintBill(selectedBill)}
-                className="flex-1 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 flex items-center justify-center gap-2"
-              >
-                <Printer size={18} />
-                ພີມບິນ
-              </button>
-              {selectedBill.status === 'ລໍຖ້າຊຳລະ' && (
-                <button 
-                  onClick={() => {
-                    handleUpdateStatus(selectedBill.id, 'ຊຳລະແລ້ວ');
-                    setSelectedBill({...selectedBill, status: 'ຊຳລະແລ້ວ'});
-                  }}
-                  className="flex-1 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 flex items-center justify-center gap-2"
-                >
-                  <CheckCircle size={18} />
-                  ອັບເດດເປັນຊຳລະແລ້ວ
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Daily Sales Summary */}
-      <div className="bg-white rounded-lg border shadow-sm">
-        <div className="p-4 border-b bg-gray-50">
-          <h3 className="font-semibold text-gray-800 flex items-center gap-2">
-            <TrendingUp size={18} />
-            ສະຫຼຸບການຂາຍ
-          </h3>
-        </div>
-        <div className="p-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center p-4 bg-blue-50 rounded-lg">
-              <p className="text-sm text-blue-600 font-medium">ມື້ນີ້</p>
-              <p className="text-2xl font-bold text-blue-600">{formatPrice(mockSalesStats.today.sales)}</p>
-              <p className="text-xs text-gray-500">{mockSalesStats.today.transactions} ທຸລະກຳ</p>
-            </div>
-            
-            <div className="text-center p-4 bg-green-50 rounded-lg">
-              <p className="text-sm text-green-600 font-medium">ອາທິດນີ້</p>
-              <p className="text-2xl font-bold text-green-600">{formatPrice(mockSalesStats.thisWeek.sales)}</p>
-              <p className="text-xs text-gray-500">{mockSalesStats.thisWeek.transactions} ທຸລະກຳ</p>
-            </div>
-            
-            <div className="text-center p-4 bg-purple-50 rounded-lg">
-              <p className="text-sm text-purple-600 font-medium">ເດືອນນີ້</p>
-              <p className="text-2xl font-bold text-purple-600">{formatPrice(mockSalesStats.thisMonth.sales)}</p>
-              <p className="text-xs text-gray-500">{mockSalesStats.thisMonth.transactions} ທຸລະກຳ</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Actions */}
-      <div className="bg-white p-6 rounded-lg border shadow-sm">
-        <h3 className="font-semibold text-gray-800 mb-4">ການກະທຳດ່ວນ</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <button className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-            <Download className="text-blue-500" size={20} />
-            <span className="text-sm font-medium">ນຳອອກລາຍງານ</span>
-          </button>
-          
-          <button 
-            onClick={() => {
-              setSearchText('');
-              setStatusFilter('');
-              setDateFilter('');
-            }}
-            className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-          >
-            <RefreshCw className="text-green-500" size={20} />
-            <span className="text-sm font-medium">ລ້າງຟິເຕີ</span>
-          </button>
-          
-          <button className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-            <Users className="text-purple-500" size={20} />
-            <span className="text-sm font-medium">ລາຍງານລູກຄ້າ</span>
-          </button>
-          
-          <button className="flex items-center gap-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-            <Calendar className="text-orange-500" size={20} />
-            <span className="text-sm font-medium">ກຳນົດການ</span>
-          </button>
-        </div>
-      </div>
+      {/* Payment Modal */}
+      <PaymentModal
+        bill={selectedBill}
+        isOpen={showPaymentModal}
+        onClose={handleClosePayment}
+        onProcessPayment={handleProcessPayment}
+      />
     </div>
   );
 };

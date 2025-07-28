@@ -10,6 +10,8 @@ import CreateBillPage from './pages/CreateBillPage';
 import ViewBillsPage from './pages/ViewBillsPage';
 import ProductsPage from './pages/ProductsPage';
 
+import ViewBillsPage from './components/Bill/ViewBillsPage';
+
 function App() {
   const [activeTab, setActiveTab] = useState('create-bill');
 
