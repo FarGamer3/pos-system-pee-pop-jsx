@@ -1,6 +1,6 @@
 // src/components/Product/ProductCard.js
 
-import React from 'react';
+
 import { formatPrice } from '../../utils/formatters';
 
 const ProductCard = ({ product, brand, unit, onProductClick }) => {

@@ -1,6 +1,6 @@
 // src/components/Bill/BillItems.js
 
-import React from 'react';
+
 import { Trash2, ShoppingCart, Save } from 'lucide-react';
 import { formatPrice } from '../../utils/formatters';
 

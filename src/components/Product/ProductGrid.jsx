@@ -1,6 +1,6 @@
 // src/components/Product/ProductGrid.js
 
-import React from 'react';
+
 import ProductCard from './ProductCard';
 
 const ProductGrid = ({ products, brands, units, onProductClick }) => {

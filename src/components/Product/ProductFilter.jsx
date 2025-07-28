@@ -1,6 +1,6 @@
 // src/components/Product/ProductFilter.js
 
-import React from 'react';
+
 import { Search, Filter, Tag, Package } from 'lucide-react';
 
 const ProductFilter = ({ 

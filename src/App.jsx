@@ -27,13 +27,18 @@ function App() {
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      {/* Sidebar */}
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
-      
-      {/* Main Content */}
-      <div className="flex-1 overflow-auto">
-        {renderContent()}
+    <div className="min-h-screen bg-gray-100">
+      {/* Mobile + Desktop Layout */}
+      <div className="lg:flex">
+        {/* Sidebar */}
+        <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+        
+        {/* Main Content */}
+        <div className="flex-1 lg:ml-0">
+          <main className="min-h-screen">
+            {renderContent()}
+          </main>
+        </div>
       </div>
     </div>
   );

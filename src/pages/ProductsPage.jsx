@@ -1,6 +1,6 @@
 // src/pages/ProductsPage.js
 
-import React from 'react';
+
 import { Package, Plus, Edit, Trash2, Tag } from 'lucide-react';
 
 const ProductsPage = () => {
