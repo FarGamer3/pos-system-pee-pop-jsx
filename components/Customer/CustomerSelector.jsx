@@ -1,6 +1,6 @@
 // src/components/Customer/CustomerSelector.js
 
-import React from 'react';
+
 import { User } from 'lucide-react';
 
 const CustomerSelector = ({ customers, selectedCustomer, onCustomerChange }) => {

@@ -1,6 +1,5 @@
 // src/components/Layout/Sidebar.js
 
-import React from 'react';
 import { ShoppingCart, FileText, Package, Home } from 'lucide-react';
 
 const Sidebar = ({ activeTab, setActiveTab }) => {
